@@ -9,7 +9,9 @@
 #include "services/state_manager.hpp"
 #include "services/ui_manager.hpp"
 #include "services/clock_manager.hpp"
+#include "services/controller.hpp"
 
+#include "board/controller.hpp"
 #include "board/audio_driver.hpp"
 #include "board/ui/egl_ui_manager.hpp"
 
@@ -31,6 +33,7 @@ int main(int argc, char* argv[])
       std::make_unique<RTAudioAudioManager>,
       ClockManager::create_default,
       std::make_unique<EGLUIManager>,
+      PrOTTO1SerialController::make_or_dummy,
       EngineManager::create_default
     };
 

@@ -79,7 +79,7 @@ namespace otto::services {
       // Update and render
       egl.beginFrame();
       canvas.clearColor(vg::Colours::Black);
-      canvas.begineFrame(egl.draw_size.width, egl.draw_size.height);
+      canvas.beginFrame(egl.draw_size.width, egl.draw_size.height);
       canvas.scale(xscale, yscale);
       draw_frame(canvas);
 
