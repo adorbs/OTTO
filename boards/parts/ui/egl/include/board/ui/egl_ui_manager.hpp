@@ -3,7 +3,6 @@
 #include "services/debug_ui.hpp"
 #include "services/ui_manager.hpp"
 
-#include "board/ui/keys.hpp"
 #include "core/ui/canvas.hpp"
 
 namespace otto::services {

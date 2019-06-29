@@ -73,17 +73,13 @@ namespace otto::services {
     float fps;
     duration<double> lastFrameTime;
 
-    std::thread kbd_thread = std::thread([this] { read_keyboard(); });
-
     while (Application::current().running()) {
       t0 = clock::now();
-
-      flush_events();
 
       // Update and render
       egl.beginFrame();
       canvas.clearColor(vg::Colours::Black);
-      canvas.begineFrame(egl.draw_size.width, egl.draw_size.height);
+      canvas.beginFrame(egl.draw_size.width, egl.draw_size.height);
       canvas.scale(xscale, yscale);
       draw_frame(canvas);
 
@@ -113,7 +109,5 @@ namespace otto::services {
     nvgDeleteGLES2(nvg);
 
     egl.exit();
-
-    kbd_thread.join();
   }
 } // namespace otto::services
