@@ -33,7 +33,7 @@ int main(int argc, char* argv[])
       std::make_unique<RTAudioAudioManager>,
       ClockManager::create_default,
       std::make_unique<EGLUIManager>,
-      PrOTTO1SerialController::make_or_dummy,
+      TOOT_MCU_FIFO_Controller::make_or_dummy,
       EngineManager::create_default
     };
 
