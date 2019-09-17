@@ -140,8 +140,7 @@ namespace otto::util {
 
     template<typename Func>
     constexpr decltype(auto) outer_locked(Func&& f) const
-    // TODO: clang 5 does not implement this
-    // noexcept(std::is_nothrow_invocable_v<Func, const T&>)
+    noexcept(std::is_nothrow_invocable_v<Func, const T&>)
     {
       std::unique_lock lock(_outer_lock);
       return std::invoke(std::forward<Func>(f), _store[(_inner_idx + 1) % 2]);

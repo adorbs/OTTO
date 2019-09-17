@@ -108,18 +108,24 @@ namespace otto::services {
   TMFC::McuFifoController()
     : read_thread([this](auto should_run) noexcept {
         while (should_run()) {
-          fifo0.read_line()
-            .map([&](auto&& bytes) { handle_message(bytes); })
-            .map_error([&](auto&& error) {
-              if (error.data() != util::FIFO::ErrorCode::empty_buffer) {
-                LOGE("Error reading fifo data {}", error.what());
-              }
-            });
+          fifo0.read_line().map([&](auto&& bytes) { handle_message(bytes); }).map_error([&](auto&& error) {
+            if (error.data() != util::FIFO::ErrorCode::empty_buffer) {
+              LOGE("Error reading fifo data {}", error.what());
+            }
+          });
         }
       })
-  {}
+  {
+    util::fill(led_colors_, LEDColor::Black);
+  }
 
-  std::unique_ptr<Controller> TMFC::make_or_dummy() {
+  TMFC::~McuFifoController() noexcept {
+    fifo0.close();
+    fifo1.close();
+  }
+
+  std::unique_ptr<Controller> TMFC::make_or_dummy()
+  {
     try {
       return std::make_unique<TMFC>();
     } catch (std::exception& e) {
@@ -130,18 +136,22 @@ namespace otto::services {
 
   void TMFC::set_color(LED led, LEDColor color)
   {
-    std::array<std::uint8_t, 6> msg = {0xEC, led.key._to_integral(), color.r, color.g, color.b,
-                                       '\n'};
+    if (led_colors_[led.key] == color) return;
+    led_colors_[led.key] = color;
+    std::array<std::uint8_t, 6> msg = {0xEC, led.key._to_integral(), color.r, color.g, color.b, '\n'};
     queue_message(msg);
   }
+
   void TMFC::flush_leds()
   {
     write_buffer_.swap();
     fifo1.write(write_buffer_.inner());
   }
+
   void TMFC::clear_leds()
   {
     auto c = LEDColor::Black;
+    util::fill(led_colors_, c);
     std::array<std::uint8_t, 5> msg = {0xE0, c.r, c.g, c.b, '\n'};
     queue_message(msg);
   }

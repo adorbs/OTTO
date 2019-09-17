@@ -18,25 +18,34 @@ namespace otto::util {
   template<typename T>
   using expected = tl::expected<T, FIFO::exception>;
 
-  FIFO::FIFO(std::string path)
-    : path_(std::move(path))
+  FIFO::FIFO(std::string path) : path_(std::move(path))
   {
     fd_ = open(path_.c_str(), O_RDWR);
     try {
       if (fd_ < 0) {
-        throw util::exception("Couldn't open fifo device '{}'. ERR {}: {}", path_, errno,
-                              strerror(errno));
+        throw util::exception("Couldn't open fifo device '{}'. ERR {}: {}", path_, errno, strerror(errno));
       }
       DLOGI("Initialized fifo");
     } catch (...) {
-      close(fd_);
+      close();
       throw;
     }
   }
 
   FIFO::~FIFO() noexcept
   {
-    close(fd_);
+    close();
+  }
+
+  void FIFO::close() noexcept
+  {
+    int fd = fd_;
+    // read checks this to catch the interrupt
+    fd_ = -1;
+    constexpr std::uint8_t end[] = {0x0};
+    // Write something to the fd to wake a reading thread
+    write(end);
+    ::close(fd);
   }
 
   expected<void> FIFO::write(ConstBytesView data)
@@ -44,8 +53,8 @@ namespace otto::util {
     auto res = ::write(fd_, data.data(), data.size());
     if (res != data.size()) {
       return tl::make_unexpected(exception(ErrorCode::error,
-        "Error writing {} bytes to fifo {}, write returned {}. ERR {}: {}", data.size(),
-        path_, res, errno, strerror(errno)));
+                                           "Error writing {} bytes to fifo {}, write returned {}. ERR {}: {}",
+                                           data.size(), path_, res, errno, strerror(errno)));
     }
     return {};
   }
@@ -53,13 +62,15 @@ namespace otto::util {
   expected<void> FIFO::read(BytesView dest) noexcept
   {
     auto res = ::read(fd_, dest.data(), dest.size());
+    // Check if the read was interrupted by destructor
+    if (fd_ < 0) return {};
     if (res == 0) {
       return tl::make_unexpected(exception(ErrorCode::empty_buffer, "No data avaliable on fifo"));
     }
     if (res != dest.size()) {
       return tl::make_unexpected(exception(ErrorCode::error,
-        "Error reading {} bytes from fifo {}, write returned {}. ERR {}: {}", dest.size(),
-        path_, res, errno, strerror(errno)));
+                                           "Error reading {} bytes from fifo {}, write returned {}. ERR {}: {}",
+                                           dest.size(), path_, res, errno, strerror(errno)));
     }
     return {};
   }

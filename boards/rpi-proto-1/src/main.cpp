@@ -48,7 +48,6 @@ int main(int argc, char* argv[])
     std::signal(SIGABRT, Application::handle_signal);
     std::signal(SIGTERM, Application::handle_signal);
     std::signal(SIGINT, Application::handle_signal);
-    std::signal(SIGKILL, Application::handle_signal);
 
     app.engine_manager->start();
     app.audio_manager->start();

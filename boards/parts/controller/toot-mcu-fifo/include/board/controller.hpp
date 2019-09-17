@@ -1,7 +1,9 @@
 #pragma once
 
 #include <gsl/span>
+#include <unordered_map>
 
+#include "util/enum.hpp"
 #include "util/locked.hpp"
 #include "util/thread.hpp"
 
@@ -69,6 +71,7 @@ namespace otto::services {
    */
   struct McuFifoController final : Controller {
     McuFifoController();
+    ~McuFifoController() noexcept;
 
     void set_color(LED, LEDColor) override;
     void flush_leds() override;
@@ -88,6 +91,7 @@ namespace otto::services {
     util::double_buffered<std::vector<std::uint8_t>, util::clear_outer> write_buffer_;
     util::thread read_thread;
     bool send_midi_ = true;
+    util::enum_map<Key, LEDColor> led_colors_;
   };
 } // namespace otto::services
 

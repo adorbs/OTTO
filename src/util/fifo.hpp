@@ -32,6 +32,8 @@ namespace otto::util {
     tl::expected<std::vector<std::uint8_t>, exception> read_line(
       std::uint8_t delim = '\n') noexcept;
 
+    void close() noexcept;
+
     const std::string& path() noexcept
     {
       return path_;
